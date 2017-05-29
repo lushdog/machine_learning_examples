@@ -38,3 +38,10 @@ pdf          -> normal distribution
 log pdf      -> ...
 cdf          -> ...
 log cdf      -> ...
+
+L2 Regularization (Ridge Regression): 
+-help prevent overfitting, reduced impact of outliers
+-penalize large weights
+-called MAP estimate of w
+-(maximizing postirior given data)
+
