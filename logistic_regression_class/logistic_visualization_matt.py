@@ -1,10 +1,15 @@
 import numpy as np
 from scipy.special import expit
+import matplotlib.pyplot as plt
 
 N = 100
 D = 2
 
 X = np.random.randn(N, D)
+
+# THIS ONLY WORKS FOR BAYES blah blah datasets, not general enough
+# go look at logistic_3_matt.py for gradient descent general purpose
+# solution
 
 # create two gaussian clouds
 
@@ -20,11 +25,17 @@ Xb = np.concatenate((np.ones((N, 1)), X), axis=1)
 # first half of targets category 0...
 T = np.array([0] * 50 + [1] * 50)
 
-# random weights (the extra column is the bias term)
-w = np.random.randn(D + 1)
-
-# Predictions Y is sigmoid of dot product
+# use closed-form solution for logistic regression
+w = np.array([0, 4, 4])
 Y = expit(Xb.dot(w))
+
+# y = -x
+
+plt.scatter(X[:, 0], X[:, 1], c=T, s=100, alpha=0.5)
+x_axis = np.linspace(-6, 6, 100)
+y_axis = -x_axis
+plt.plot(x_axis, y_axis)
+plt.show()
 
 
 def calculate_cross_entropy(T, Y):
@@ -37,16 +48,4 @@ def calculate_cross_entropy(T, Y):
     return E
 
 
-print('Cross entropy error is:', calculate_cross_entropy(T, Y))
-
-# use closed-form solution for logistic regression
-# closed form will work as variances are same for each class in X
-# therefore w depends only on means (of classes in X?)
-
-# bias is 0 and each weight is four
-# you would need to do the math
-# to calculate this w manually
-w = np.array([0, 4, 4])
-
-Y = expit(Xb.dot(w))
 print('Cross entropy error is:', calculate_cross_entropy(T, Y))
