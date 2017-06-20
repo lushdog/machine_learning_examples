@@ -3,7 +3,7 @@ from scipy.special import expit
 import matplotlib.pyplot as plt
 
 # !!!!!!!!!!
-# omly change to this file from logistic_3_matt.py
+# only change to this file from logistic_3_matt.py
 # is the addition of L2 regularization to calculation of w
 # during gradient descent at bottom of this file
 
@@ -52,7 +52,7 @@ for t in range(100):
 
     # !!!!!
     # only change to this file is L2 regularization added to
-    # calculation of w, you can compare values in w with 
+    # calculation of w, you can compare values in w with
     # and without L2reg and you will see lower values of w
     # when using L2 reg
 
