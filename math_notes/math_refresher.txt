@@ -41,7 +41,16 @@ log cdf      -> ...
 
 L2 Regularization (Ridge Regression): 
 -help prevent overfitting, reduced impact of outliers
--penalize large weights
+-penalize large weights - encourages small weights
+-encourages small weights - all weights close to 0 but not exactly 0)
 -called MAP estimate of w
 -(maximizing postirior given data)
+-L2 penalty is a quadratic function
+
+L1 Regularization:
+-helps choose most important features (columns)
+-few weights are non-zero, many are 0
+-helps reduce noise columns
+-useful when we have a fat matrix (num_dimensions ~ num_examples, N ~ D)
+-L1 penalty is an absolute function
 
