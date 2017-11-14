@@ -6,11 +6,12 @@ import json
 import numpy as np
 import theano
 import theano.tensor as T
+import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from datetime import datetime
 from sklearn.utils import shuffle
-from word2vec import get_wikipedia_data, find_analogies
+from word2vec import get_wikipedia_data, find_analogies, get_sentences_with_word2idx_limit_vocab
 
 # Experiments
 # previous results did not make sense b/c X was built incorrectly
@@ -28,7 +29,7 @@ class Glove:
         self.V = V
         self.context_sz = context_sz
 
-    def fit(self, sentences, cc_matrix=None, learning_rate=10e-5, reg=0.1, xmax=100, alpha=0.75, epochs=10, gd=False, use_theano=True):
+    def fit(self, sentences, cc_matrix=None, learning_rate=1e-4, reg=0.1, xmax=100, alpha=0.75, epochs=10, gd=False, use_theano=False, use_tensorflow=False):
         # build co-occurrence matrix
         # paper calls it X, so we will call it X, instead of calling
         # the training data X
@@ -112,7 +113,8 @@ class Glove:
         c = np.zeros(V)
         mu = logX.mean()
 
-        if gd and use_theano:
+        if use_theano:
+            # initialize weights, inputs, targets placeholders
             thW = theano.shared(W)
             thb = theano.shared(b)
             thU = theano.shared(U)
@@ -125,6 +127,9 @@ class Glove:
             thDelta = thW.dot(thU.T) + T.reshape(thb, (V, 1)) + T.reshape(thc, (1, V)) + mu - thLogX
             thCost = ( thfX * thDelta * thDelta ).sum()
 
+            # regularization
+            thCost += reg*( (thW * thW).sum() + (thU * thU).sum() + (thb * thb).sum() + (thc * thc).sum())
+
             grads = T.grad(thCost, params)
 
             updates = [(p, p - learning_rate*g) for p, g in zip(params, grads)]
@@ -133,6 +138,25 @@ class Glove:
                 inputs=[thfX, thLogX],
                 updates=updates,
             )
+
+        elif use_tensorflow:
+            # initialize weights, inputs, targets placeholders
+            tfW = tf.Variable(W.astype(np.float32))
+            tfb = tf.Variable(b.reshape(V, 1).astype(np.float32))
+            tfU = tf.Variable(U.astype(np.float32))
+            tfc = tf.Variable(c.reshape(1, V).astype(np.float32))
+            tfLogX = tf.placeholder(tf.float32, shape=(V, V))
+            tffX = tf.placeholder(tf.float32, shape=(V, V))
+
+            delta = tf.matmul(tfW, tf.transpose(tfU)) + tfb + tfc + mu - tfLogX
+            cost = tf.reduce_sum(tffX * delta * delta)
+            for param in (tfW, tfb, tfU, tfc):
+                cost += reg*tf.reduce_sum(param * param)
+
+            train_op = tf.train.MomentumOptimizer(learning_rate, momentum=0.9).minimize(cost)
+            init = tf.global_variables_initializer()
+            session = tf.InteractiveSession()
+            session.run(init)
 
         costs = []
         sentence_indexes = range(len(sentences))
@@ -151,6 +175,10 @@ class Glove:
                     b = thb.get_value()
                     U = thU.get_value()
                     c = thc.get_value()
+
+                elif use_tensorflow:
+                    session.run(train_op, feed_dict={tfLogX: logX, tffX: fX})
+                    W, b, U, c = session.run([tfW, tfb, tfU, tfc])
 
                 else:
                     # update W
@@ -260,8 +288,11 @@ class Glove:
         np.savez(fn, *arrays)
 
 
-def main(we_file, w2i_file, n_files=50):
-    cc_matrix = "cc_matrix_%s.npy" % n_files
+def main(we_file, w2i_file, use_brown=True, n_files=50):
+    if use_brown:
+        cc_matrix = "cc_matrix_brown.npy"
+    else:
+        cc_matrix = "cc_matrix_%s.npy" % n_files
 
     # hacky way of checking if we need to re-load the raw data or not
     # remember, only the co-occurrence matrix is needed for training
@@ -270,29 +301,44 @@ def main(we_file, w2i_file, n_files=50):
             word2idx = json.load(f)
         sentences = [] # dummy - we won't actually use it
     else:
-        sentences, word2idx = get_wikipedia_data(n_files=n_files, n_vocab=2000)
+        if use_brown:
+            keep_words = set([
+                'king', 'man', 'woman',
+                'france', 'paris', 'london', 'rome', 'italy', 'britain', 'england',
+                'french', 'english', 'japan', 'japanese', 'chinese', 'italian',
+                'australia', 'australian', 'december', 'november', 'june',
+                'january', 'february', 'march', 'april', 'may', 'july', 'august',
+                'september', 'october',
+            ])
+            sentences, word2idx = get_sentences_with_word2idx_limit_vocab(n_vocab=5000, keep_words=keep_words)
+        else:
+            sentences, word2idx = get_wikipedia_data(n_files=n_files, n_vocab=2000)
+        
         with open(w2i_file, 'w') as f:
             json.dump(word2idx, f)
 
     V = len(word2idx)
-    model = Glove(80, V, 10)
+    model = Glove(100, V, 10)
     # model.fit(sentences, cc_matrix=cc_matrix, epochs=20) # ALS
     model.fit(
         sentences,
         cc_matrix=cc_matrix,
         learning_rate=3*10e-5,
-        reg=0.01,
-        epochs=2000,
+        reg=0.1,
+        epochs=10,
         gd=True,
-        use_theano=True
-    ) # gradient descent
+        use_theano=False,
+        use_tensorflow=True,
+    )
     model.save(we_file)
 
 
 if __name__ == '__main__':
-    we = 'glove_model_50.npz'
-    w2i = 'glove_word2idx_50.json'
-    main(we, w2i)
+    # we = 'glove_model_50.npz'
+    # w2i = 'glove_word2idx_50.json'
+    we = 'glove_model_brown.npz'
+    w2i = 'glove_word2idx_brown.json'
+    main(we, w2i, use_brown=True)
     for concat in (True, False):
         print "** concat:", concat
         find_analogies('king', 'man', 'woman', concat, we, w2i)

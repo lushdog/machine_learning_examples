@@ -3,7 +3,8 @@
 # https://udemy.com/natural-language-processing-with-deep-learning-in-python
 
 # You can get the data from this URL: http://www.cnts.ua.ac.be/conll2000/chunking/
-# not considering context
+# If above URL does not work, try this:
+# https://drive.google.com/file/d/0BxGV7C-8DTe5QmF2MTFwN3JjWGc/view?usp=sharing
 
 import numpy as np
 import theano
@@ -18,7 +19,7 @@ class LogisticRegression:
     def __init__(self):
         pass
 
-    def fit(self, X, Y, V=None, K=None, D=50, lr=10e-1, mu=0.99, batch_sz=100, epochs=6):
+    def fit(self, X, Y, V=None, K=None, D=50, lr=1e-1, mu=0.99, batch_sz=100, epochs=6):
         if V is None:
             V = len(set(X))
         if K is None:

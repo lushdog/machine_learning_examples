@@ -42,7 +42,7 @@ class DBN(object):
             Z = ae.forward_hidden(Z)
         return Z
 
-    def fit_to_input(self, k, learning_rate=0.00001, mu=0.99, reg=10e-10, epochs=20000):
+    def fit_to_input(self, k, learning_rate=1.0, mu=0.99, epochs=100000):
         # This is not very flexible, as you would ideally
         # like to be able to activate any node in any hidden
         # layer, not just the last layer.
@@ -71,7 +71,6 @@ class DBN(object):
         )
 
         costs = []
-        bestX = None
         for i in xrange(epochs):
             if i % 1000 == 0:
                 print "epoch:", i
@@ -79,17 +78,10 @@ class DBN(object):
             if i == 0:
                 print "out.shape:", out.shape
             costs.append(the_cost)
-            # if the_cost < 10:
-            #     break
-            if the_cost > costs[-1] or np.isnan(the_cost):
-                break
-
-            bestX = X.get_value()
-        print "len(costs):", len(costs), "max:", np.max(costs), "min:", np.min(costs)
         plt.plot(costs)
         plt.show()
 
-        return bestX
+        return X.get_value()
 
     def save(self, filename):
         arrays = [p.get_value() for layer in self.hidden_layers for p in layer.params]

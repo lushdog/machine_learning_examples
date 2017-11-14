@@ -5,6 +5,7 @@
 # sudo pip install sortedcontainers (if you don't have it)
 
 import numpy as np
+import matplotlib.pyplot as plt
 from sortedcontainers import SortedList
 # Note: You can't use SortedDict because the key is distance
 # if 2 close points are the same distance away, one will be overwritten
@@ -62,16 +63,29 @@ if __name__ == '__main__':
     Ntrain = 1000
     Xtrain, Ytrain = X[:Ntrain], Y[:Ntrain]
     Xtest, Ytest = X[Ntrain:], Y[Ntrain:]
-    for k in (1,2,3,4,5):
+    train_scores = []
+    test_scores = []
+    ks = (1,2,3,4,5)
+    for k in ks:
+        print "\nk =", k
         knn = KNN(k)
         t0 = datetime.now()
         knn.fit(Xtrain, Ytrain)
         print "Training time:", (datetime.now() - t0)
 
         t0 = datetime.now()
-        print "Train accuracy:", knn.score(Xtrain, Ytrain)
+        train_score = knn.score(Xtrain, Ytrain)
+        train_scores.append(train_score)
+        print "Train accuracy:", train_score
         print "Time to compute train accuracy:", (datetime.now() - t0), "Train size:", len(Ytrain)
 
         t0 = datetime.now()
-        print "Test accuracy:", knn.score(Xtest, Ytest)
+        test_score = knn.score(Xtest, Ytest)
+        print "Test accuracy:", test_score
+        test_scores.append(test_score)
         print "Time to compute test accuracy:", (datetime.now() - t0), "Test size:", len(Ytest)
+
+    plt.plot(ks, train_scores, label='train scores')
+    plt.plot(ks, test_scores, label='test scores')
+    plt.legend()
+    plt.show()
