@@ -45,7 +45,7 @@ def rearrange(X):
 
 def main():
     train = loadmat('large_files/train_32x32.mat')
-    test = loadmat('large_Files/test_32x32.mat')
+    test = loadmat('large_files/test_32x32.mat')
 
     # Need to scale...
     Xtrain = rearrange(train['X'])
@@ -146,12 +146,12 @@ def main():
     costs = []
     for i in range(max_iter):
         for j in range(n_batches):
+            Xtrain, Ytrain = shuffle(Xtrain, Ytrain)
             Xbatch = Xtrain[j * batch_sz:(j * batch_sz + batch_sz), ]
             Ybatch = Ytrain[j * batch_sz:(j * batch_sz + batch_sz), ]
 
             train(Xbatch, Ybatch)
-            # if j % print_period == 0:
-            if True:
+            if j % print_period == 0:
                 cost_val, prediction_val = get_prediction(Xtest, Ytest)
                 err = error_rate(prediction_val, Ytest)
                 print("Cost / err at iteration i=%d, j=%d: %.3f / %.3f" % (i, j, cost_val, err))
