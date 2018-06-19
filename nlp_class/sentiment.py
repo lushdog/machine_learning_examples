@@ -7,6 +7,12 @@
 # i.e. It is not optimized for anything.
 
 # Author: http://lazyprogrammer.me
+from __future__ import print_function, division
+from future.utils import iteritems
+from builtins import range
+# Note: you may need to update your version of future
+# sudo pip install -U future
+
 
 import nltk
 import numpy as np
@@ -21,6 +27,10 @@ wordnet_lemmatizer = WordNetLemmatizer()
 # from http://www.lextek.com/manuals/onix/stopwords1.html
 stopwords = set(w.rstrip() for w in open('stopwords.txt'))
 
+# note: an alternative source of stopwords
+# from nltk.corpus import stopwords
+# stopwords.words('english')
+
 # load the reviews
 # data courtesy of http://www.cs.jhu.edu/~mdredze/datasets/sentiment/index2.html
 positive_reviews = BeautifulSoup(open('electronics/positive.review').read())
@@ -31,8 +41,14 @@ negative_reviews = negative_reviews.findAll('review_text')
 
 # there are more positive reviews than negative reviews
 # so let's take a random sample so we have balanced classes
-np.random.shuffle(positive_reviews)
-positive_reviews = positive_reviews[:len(negative_reviews)]
+# np.random.shuffle(positive_reviews)
+# positive_reviews = positive_reviews[:len(negative_reviews)]
+
+# we can also oversample the negative reviews
+diff = len(positive_reviews) - len(negative_reviews)
+idxs = np.random.choice(len(negative_reviews), size=diff)
+extra = [negative_reviews[i] for i in idxs]
+negative_reviews += extra
 
 # first let's just try to tokenize the text using nltk's tokenizer
 # let's take the first review for example:
@@ -117,13 +133,13 @@ Ytest = Y[-100:,]
 
 model = LogisticRegression()
 model.fit(Xtrain, Ytrain)
-print "Classification rate:", model.score(Xtest, Ytest)
+print("Classification rate:", model.score(Xtest, Ytest))
 
 
 # let's look at the weights for each word
 # try it with different threshold values!
 threshold = 0.5
-for word, index in word_index_map.iteritems():
+for word, index in iteritems(word_index_map):
     weight = model.coef_[0][index]
     if weight > threshold or weight < -threshold:
-        print word, weight
+        print(word, weight)

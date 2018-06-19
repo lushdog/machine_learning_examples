@@ -5,6 +5,13 @@
 # https://deeplearningcourses.com/c/data-science-logistic-regression-in-python
 # https://www.udemy.com/data-science-logistic-regression-in-python
 
+from __future__ import print_function, division
+from builtins import range
+# Note: you may need to update your version of future
+# sudo pip install -U future
+
+
+
 import numpy as np
 
 N = 100
@@ -42,7 +49,7 @@ Y = sigmoid(z)
 # calculate the cross-entropy error
 def cross_entropy(T, Y):
     E = 0
-    for i in xrange(len(T)):
+    for i in range(len(T)):
         if T[i] == 1:
             E -= np.log(Y[i])
         else:
@@ -52,9 +59,9 @@ def cross_entropy(T, Y):
 
 # let's do gradient descent 100 times
 learning_rate = 0.1
-for i in xrange(100):
+for i in range(100):
     if i % 10 == 0:
-        print cross_entropy(T, Y)
+        print(cross_entropy(T, Y))
 
     # gradient descent weight udpate with regularization
     # w += learning_rate * ( np.dot((T - Y).T, Xb) - 0.1*w ) # old
@@ -64,6 +71,6 @@ for i in xrange(100):
     Y = sigmoid(Xb.dot(w))
 
 
-print "Final w:", w
+print("Final w:", w)
 
 

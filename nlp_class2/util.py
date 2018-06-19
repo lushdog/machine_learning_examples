@@ -1,35 +1,64 @@
 # Course URL:
 # https://deeplearningcourses.com/c/natural-language-processing-with-deep-learning-in-python
 # https://udemy.com/natural-language-processing-with-deep-learning-in-python
+from __future__ import print_function, division
+from future.utils import iteritems
+from builtins import range
+# Note: you may need to update your version of future
+# sudo pip install -U future
+
+
+import os
 import numpy as np
+from sklearn.metrics.pairwise import pairwise_distances
+
+
 
 def init_weight(Mi, Mo):
     return np.random.randn(Mi, Mo) / np.sqrt(Mi + Mo)
 
 
-def find_analogies(w1, w2, w3, We, word2idx):
+# slow version
+# def find_analogies(w1, w2, w3, We, word2idx):
+#     king = We[word2idx[w1]]
+#     man = We[word2idx[w2]]
+#     woman = We[word2idx[w3]]
+#     v0 = king - man + woman
+
+#     def dist1(a, b):
+#         return np.linalg.norm(a - b)
+#     def dist2(a, b):
+#         return 1 - a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+#     for dist, name in [(dist1, 'Euclidean'), (dist2, 'cosine')]:
+#         min_dist = float('inf')
+#         best_word = ''
+#         for word, idx in iteritems(word2idx):
+#             if word not in (w1, w2, w3):
+#                 v1 = We[idx]
+#                 d = dist(v0, v1)
+#                 if d < min_dist:
+#                     min_dist = d
+#                     best_word = word
+#         print("closest match by", name, "distance:", best_word)
+#         print(w1, "-", w2, "=", best_word, "-", w3)
+
+# fast version
+def find_analogies(w1, w2, w3, We, word2idx, idx2word):
+    V, D = We.shape
+
     king = We[word2idx[w1]]
     man = We[word2idx[w2]]
     woman = We[word2idx[w3]]
     v0 = king - man + woman
 
-    def dist1(a, b):
-        return np.linalg.norm(a - b)
-    def dist2(a, b):
-        return 1 - a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    for dist in ('euclidean', 'cosine'):
+        distances = pairwise_distances(v0.reshape(1, D), We, metric=dist).reshape(V)
+        idx = distances.argmin()
+        best_word = idx2word[idx]
 
-    for dist, name in [(dist1, 'Euclidean'), (dist2, 'cosine')]:
-        min_dist = float('inf')
-        best_word = ''
-        for word, idx in word2idx.iteritems():
-            if word not in (w1, w2, w3):
-                v1 = We[idx]
-                d = dist(v0, v1)
-                if d < min_dist:
-                    min_dist = d
-                    best_word = word
-        print "closest match by", name, "distance:", best_word
-        print w1, "-", w2, "=", best_word, "-", w3
+        print("closest match by", dist, "distance:", best_word)
+        print(w1, "-", w2, "=", best_word, "-", w3)
 
 
 class Tree:
@@ -43,9 +72,9 @@ class Tree:
 def display_tree(t, lvl=0):
     prefix = ''.join(['>']*lvl)
     if t.word is not None:
-        print "%s%s %s" % (prefix, t.label, t.word)
+        print("%s%s %s" % (prefix, t.label, t.word))
     else:
-        print "%s%s -" % (prefix, t.label)
+        print("%s%s -" % (prefix, t.label))
         # if t.left is None or t.right is None:
         #     raise Exception("Tree node has no word but left and right child are None")
     if t.left:
@@ -125,6 +154,20 @@ def get_ptb_data():
     # word2idx mapping, sentences
     # here the sentences should be Tree objects
 
+    if not os.path.exists('../large_files/trees'):
+        print("Please create ../large_files/trees relative to this file.")
+        print("train.txt and test.txt should be stored in there.")
+        print("Please download the data from http://nlp.stanford.edu/sentiment/")
+        exit()
+    elif not os.path.exists('../large_files/trees/train.txt'):
+        print("train.txt is not in ../large_files/trees/train.txt")
+        print("Please download the data from http://nlp.stanford.edu/sentiment/")
+        exit()
+    elif not os.path.exists('../large_files/trees/test.txt'):
+        print("test.txt is not in ../large_files/trees/test.txt")
+        print("Please download the data from http://nlp.stanford.edu/sentiment/")
+        exit()
+
     word2idx = {}
     train = []
     test = []
@@ -142,7 +185,7 @@ def get_ptb_data():
             # break
 
     # test set
-    for line in open('../large_files/trees/train.txt'):
+    for line in open('../large_files/trees/test.txt'):
         line = line.rstrip()
         if line:
             t = str2tree(line, word2idx)

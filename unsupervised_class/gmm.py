@@ -1,12 +1,19 @@
 # https://deeplearningcourses.com/c/cluster-analysis-unsupervised-machine-learning-python
 # https://www.udemy.com/cluster-analysis-unsupervised-machine-learning-python
+from __future__ import print_function, division
+from future.utils import iteritems
+from builtins import range, input
+# Note: you may need to update your version of future
+# sudo pip install -U future
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 from scipy.stats import multivariate_normal
 
 
-def gmm(X, K, max_iter=20, smoothing=10e-3):
+def gmm(X, K, max_iter=20, smoothing=1e-2):
     N, D = X.shape
     M = np.zeros((K, D))
     R = np.zeros((N, K))
@@ -14,33 +21,40 @@ def gmm(X, K, max_iter=20, smoothing=10e-3):
     pi = np.ones(K) / K # uniform
 
     # initialize M to random, initialize C to spherical with variance 1
-    for k in xrange(K):
+    for k in range(K):
         M[k] = X[np.random.choice(N)]
         C[k] = np.eye(D)
 
     costs = np.zeros(max_iter)
     weighted_pdfs = np.zeros((N, K)) # we'll use these to store the PDF value of sample n and Gaussian k
-    for i in xrange(max_iter):
+    for i in range(max_iter):
         # step 1: determine assignments / resposibilities
-        for k in xrange(K):
-            for n in xrange(N):
-                weighted_pdfs[n,k] = pi[k]*multivariate_normal.pdf(X[n], M[k], C[k])
+        # this is the slow way
+        # for k in range(K):
+        #     for n in range(N):
+        #         weighted_pdfs[n,k] = pi[k]*multivariate_normal.pdf(X[n], M[k], C[k])
 
-        for k in xrange(K):
-            for n in xrange(N):
-                R[n,k] = weighted_pdfs[n,k] / weighted_pdfs[n,:].sum()
+        # for k in range(K):
+        #     for n in range(N):
+        #         R[n,k] = weighted_pdfs[n,k] / weighted_pdfs[n,:].sum()
 
         # a faster way to do step 1: "vectorization"
-        # for k in xrange(K):
-        #     weighted_pdfs[:,k] = pi[k]*multivariate_normal.pdf(X, M[k], C[k])
-        # R = weighted_pdfs / weighted_pdfs.sum(axis=1, keepdims=True)
+        for k in range(K):
+            weighted_pdfs[:,k] = pi[k]*multivariate_normal.pdf(X, M[k], C[k])
+        R = weighted_pdfs / weighted_pdfs.sum(axis=1, keepdims=True)
 
         # step 2: recalculate params
-        for k in xrange(K):
+        for k in range(K):
             Nk = R[:,k].sum()
             pi[k] = Nk / N
             M[k] = R[:,k].dot(X) / Nk
-            C[k] = np.sum(R[n,k]*np.outer(X[n] - M[k], X[n] - M[k]) for n in xrange(N)) / Nk + np.eye(D)*smoothing
+
+            ## faster
+            delta = X - M[k] # N x D
+            Rdelta = np.expand_dims(R[:,k], -1) * delta # multiplies R[:,k] by each col. of delta - N x D
+            C[k] = Rdelta.T.dot(delta) / Nk + np.eye(D)*smoothing # D x D
+            ## slower
+            # C[k] = np.sum(R[n,k]*np.outer(X[n] - M[k], X[n] - M[k]) for n in range(N)) / Nk + np.eye(D)*smoothing
 
 
         costs[i] = np.log(weighted_pdfs.sum(axis=1)).sum()
@@ -57,9 +71,9 @@ def gmm(X, K, max_iter=20, smoothing=10e-3):
     plt.scatter(X[:,0], X[:,1], c=colors)
     plt.show()
 
-    print "pi:", pi
-    print "means:", M
-    print "covariances:", C
+    print("pi:", pi)
+    print("means:", M)
+    print("covariances:", C)
     return R
 
 

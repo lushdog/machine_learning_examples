@@ -1,5 +1,11 @@
 # https://deeplearningcourses.com/c/deep-learning-recurrent-neural-networks-in-python
 # https://udemy.com/deep-learning-recurrent-neural-networks-in-python
+from __future__ import print_function, division
+from builtins import range
+# Note: you may need to update your version of future
+# sudo pip install -U future
+
+
 import numpy as np
 import theano
 import theano.tensor as T
@@ -28,7 +34,7 @@ class ANN(object):
     def __init__(self, hidden_layer_sizes):
         self.hidden_layer_sizes = hidden_layer_sizes
 
-    def fit(self, X, Y, learning_rate=10e-3, mu=0.99, reg=10e-12, eps=10e-10, epochs=400, batch_sz=20, print_period=1, show_fig=False):
+    def fit(self, X, Y, learning_rate=1e-2, mu=0.99, reg=1e-12, epochs=400, batch_sz=20, print_period=1, show_fig=False):
 
         # X = X.astype(np.float32)
         Y = Y.astype(np.int32)
@@ -83,13 +89,11 @@ class ANN(object):
             updates=updates,
         )
 
-        n_batches = N / batch_sz
-        # print "N:", N, "batch_sz:", batch_sz
-        # print "n_batches:", n_batches
+        n_batches = N // batch_sz
         costs = []
-        for i in xrange(epochs):
+        for i in range(epochs):
             X, Y = shuffle(X, Y)
-            for j in xrange(n_batches):
+            for j in range(n_batches):
                 Xbatch = X[j*batch_sz:(j*batch_sz+batch_sz)]
                 Ybatch = Y[j*batch_sz:(j*batch_sz+batch_sz)]
 
@@ -98,7 +102,7 @@ class ANN(object):
                 if j % print_period == 0:
                     costs.append(c)
                     e = np.mean(Ybatch != p)
-                    print "i:", i, "j:", j, "nb:", n_batches, "cost:", c, "error rate:", e
+                    print("i:", i, "j:", j, "nb:", n_batches, "cost:", c, "error rate:", e)
         
         if show_fig:
             plt.plot(costs)
@@ -118,13 +122,13 @@ class ANN(object):
 def wide():
     X, Y = all_parity_pairs(12)
     model = ANN([2048])
-    model.fit(X, Y, learning_rate=10e-5, print_period=10, epochs=300, show_fig=True)
+    model.fit(X, Y, learning_rate=1e-4, print_period=10, epochs=300, show_fig=True)
 
 def deep():
     # Challenge - find a deeper, slimmer network to solve the problem
     X, Y = all_parity_pairs(12)
     model = ANN([1024]*2)
-    model.fit(X, Y, learning_rate=10e-4, print_period=10, epochs=100, show_fig=True)
+    model.fit(X, Y, learning_rate=1e-3, print_period=10, epochs=100, show_fig=True)
 
 if __name__ == '__main__':
     wide()

@@ -1,5 +1,11 @@
 # https://deeplearningcourses.com/c/deep-learning-recurrent-neural-networks-in-python
 # https://udemy.com/deep-learning-recurrent-neural-networks-in-python
+from __future__ import print_function, division
+from builtins import range
+# Note: you may need to update your version of future
+# sudo pip install -U future
+
+
 import theano
 import theano.tensor as T
 import numpy as np
@@ -14,11 +20,11 @@ class SimpleRNN:
         self.M = M # hidden layer size
         self.V = V # vocabulary size
 
-    def fit(self, X, Y, learning_rate=10e-1, mu=0.99, reg=1.0, activation=T.tanh, epochs=500, show_fig=False):
+    def fit(self, X, Y, learning_rate=1.0, mu=0.99, reg=1.0, activation=T.tanh, epochs=500, show_fig=False):
         M = self.M
         V = self.V
         K = len(set(Y))
-        print "V:", V
+        print("V:", V)
 
         X, Y = shuffle(X, Y)
         Nvalid = 10
@@ -55,11 +61,11 @@ class SimpleRNN:
         )
 
         costs = []
-        for i in xrange(epochs):
+        for i in range(epochs):
             X, Y = shuffle(X, Y)
             n_correct = 0
             cost = 0
-            for j in xrange(N):
+            for j in range(N):
                 # we set 0 to start and 1 to end
                 # print "X[%d]:" % j, X[j], "len:", len(X[j])
                 c, p = self.train_op(X[j], Y[j], learning_rate)
@@ -72,12 +78,12 @@ class SimpleRNN:
 
             # calculate validation accuracy
             n_correct_valid = 0
-            for j in xrange(Nvalid):
+            for j in range(Nvalid):
                 p = self.predict_op(Xvalid[j])
                 if p == Yvalid[j]:
                     n_correct_valid += 1
-            print "i:", i, "cost:", cost, "correct rate:", (float(n_correct)/N),
-            print "validation correct rate:", (float(n_correct_valid)/Nvalid)
+            print("i:", i, "cost:", cost, "correct rate:", (float(n_correct)/N), end=" ")
+            print("validation correct rate:", (float(n_correct_valid)/Nvalid))
             costs.append(cost)
 
         if show_fig:
@@ -143,7 +149,7 @@ class SimpleRNN:
 def train_poetry():
     X, Y, V = get_poetry_classifier_data(samples_per_class=500)
     rnn = SimpleRNN(30, V)
-    rnn.fit(X, Y, learning_rate=10e-7, show_fig=True, activation=T.nnet.relu, epochs=1000)
+    rnn.fit(X, Y, learning_rate=1e-6, show_fig=True, activation=T.nnet.relu, epochs=1000)
 
 if __name__ == '__main__':
     train_poetry()

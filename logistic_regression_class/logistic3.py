@@ -4,23 +4,31 @@
 # https://deeplearningcourses.com/c/data-science-logistic-regression-in-python
 # https://www.udemy.com/data-science-logistic-regression-in-python
 
+from __future__ import print_function, division
+from builtins import range
+# Note: you may need to update your version of future
+# sudo pip install -U future
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 N = 100
 D = 2
 
+N_per_class = N//2
+
 
 X = np.random.randn(N,D)
 
 # center the first 50 points at (-2,-2)
-X[:50,:] = X[:50,:] - 2*np.ones((50,D))
+X[:N_per_class,:] = X[:N_per_class,:] - 2*np.ones((N_per_class,D))
 
 # center the last 50 points at (2, 2)
-X[50:,:] = X[50:,:] + 2*np.ones((50,D))
+X[N_per_class:,:] = X[N_per_class:,:] + 2*np.ones((N_per_class,D))
 
-# labels: first 50 are 0, last 50 are 1
-T = np.array([0]*50 + [1]*50)
+# labels: first N_per_class are 0, last N_per_class are 1
+T = np.array([0]*N_per_class + [1]*N_per_class)
 
 # add a column of ones
 # ones = np.array([[1]*N]).T # old
@@ -42,7 +50,7 @@ Y = sigmoid(z)
 # calculate the cross-entropy error
 def cross_entropy(T, Y):
     E = 0
-    for i in xrange(len(T)):
+    for i in range(len(T)):
         if T[i] == 1:
             E -= np.log(Y[i])
         else:
@@ -52,9 +60,9 @@ def cross_entropy(T, Y):
 
 # let's do gradient descent 100 times
 learning_rate = 0.1
-for i in xrange(100):
+for i in range(100):
     if i % 10 == 0:
-        print cross_entropy(T, Y)
+        print(cross_entropy(T, Y))
 
     # gradient descent weight udpate
     # w += learning_rate * np.dot((T - Y).T, Xb) # old
@@ -64,7 +72,7 @@ for i in xrange(100):
     Y = sigmoid(Xb.dot(w))
 
 
-print "Final w:", w
+print("Final w:", w)
 
 # plot the data and separating line
 plt.scatter(X[:,0], X[:,1], c=T, s=100, alpha=0.5)

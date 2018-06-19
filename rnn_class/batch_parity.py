@@ -1,5 +1,11 @@
 # https://deeplearningcourses.com/c/deep-learning-recurrent-neural-networks-in-python
 # https://udemy.com/deep-learning-recurrent-neural-networks-in-python
+from __future__ import print_function, division
+from builtins import range
+# Note: you may need to update your version of future
+# sudo pip install -U future
+
+
 import theano
 import theano.tensor as T
 import numpy as np
@@ -13,7 +19,7 @@ class SimpleRNN:
     def __init__(self, M):
         self.M = M # hidden layer size
 
-    def fit(self, X, Y, batch_sz=20, learning_rate=10e-1, mu=0.99, reg=1.0, activation=T.tanh, epochs=100, show_fig=False):
+    def fit(self, X, Y, batch_sz=20, learning_rate=1.0, mu=0.99, reg=1.0, activation=T.tanh, epochs=100, show_fig=False):
         D = X[0].shape[1] # X is of size N x T(n) x D
         K = len(set(Y.flatten()))
         N = len(Y)
@@ -108,36 +114,36 @@ class SimpleRNN:
         )
 
         costs = []
-        n_batches = N / batch_sz
+        n_batches = N // batch_sz
         sequenceLength = X.shape[1]
 
         # if each sequence was of variable length, we would need to
         # initialize this inside the loop for every new batch
         startPoints = np.zeros(sequenceLength*batch_sz, dtype=np.int32)
-        for b in xrange(batch_sz):
+        for b in range(batch_sz):
             startPoints[b*sequenceLength] = 1
-        for i in xrange(epochs):
+        for i in range(epochs):
             X, Y = shuffle(X, Y)
             n_correct = 0
             cost = 0
-            for j in xrange(n_batches):
+            for j in range(n_batches):
                 Xbatch = X[j*batch_sz:(j+1)*batch_sz].reshape(sequenceLength*batch_sz, D)
                 Ybatch = Y[j*batch_sz:(j+1)*batch_sz].reshape(sequenceLength*batch_sz).astype(np.int32)
                 c, p, rout = self.train_op(Xbatch, Ybatch, startPoints)
                 # print "p:", p
                 cost += c
                 # P = p.reshape(batch_sz, sequenceLength)
-                for b in xrange(batch_sz):
+                for b in range(batch_sz):
                     idx = sequenceLength*(b + 1) - 1
                     if p[idx] == Ybatch[idx]:
                         n_correct += 1
                     # else:
                         # print "pred:", p[idx], "actual:", Ybatch[idx]
             if i % 10 == 0:
-                print "shape y:", rout.shape
-                print "i:", i, "cost:", cost, "classification rate:", (float(n_correct)/N)
+                print("shape y:", rout.shape)
+                print("i:", i, "cost:", cost, "classification rate:", (float(n_correct)/N))
             if n_correct == N:
-                print "i:", i, "cost:", cost, "classification rate:", (float(n_correct)/N)
+                print("i:", i, "cost:", cost, "classification rate:", (float(n_correct)/N))
                 break
             costs.append(cost)
 
@@ -147,7 +153,7 @@ class SimpleRNN:
 
 
 
-def parity(B=12, learning_rate=10e-4, epochs=3000):
+def parity(B=12, learning_rate=1e-3, epochs=3000):
     X, Y = all_parity_pairs_with_sequence_labels(B)
 
     rnn = SimpleRNN(4)
