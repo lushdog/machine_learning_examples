@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
@@ -24,3 +25,20 @@ print("NB score:", model.score(Xtest, Ytest))
 model = AdaBoostClassifier()
 model.fit(Xtrain, Ytrain)
 print("Ada score:", model.score(Xtest, Ytest))
+
+
+# visualize the data
+def visualize(label, title):
+    words = ''
+    for msg in data[data['labels'] == label]['data']:
+        msg = msg.lower()
+        words += msg + ' '
+    wordcloud = WordCloud(width=600, height=400).generate(words)
+    plt.imshow(wordcloud)
+    plt.title(title)
+    plt.axis('off')
+    plt.show()
+
+
+visualize('spam', 'Spam word count')
+visualize('ham', 'Ham word count')
